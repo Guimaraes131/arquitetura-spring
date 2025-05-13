@@ -1,24 +1,30 @@
 package io.github.Guimaraes131.arquiteturaspring.todos;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class TodoService {
 
     private final TodoRepository repository;
+    private final TodoValidator validator;
+    private final MailSender mailSender;
 
-    public TodoService(TodoRepository todoRepository) {
-        this.repository = todoRepository;
+    public TodoService(TodoRepository repository, TodoValidator validator, MailSender mailSender) {
+        this.repository = repository;
+        this.validator = validator;
+        this.mailSender = mailSender;
     }
 
     public TodoEntity salvar(TodoEntity novoTodo) {
+        validator.validar(novoTodo);
         return repository.save(novoTodo);
     }
 
     public TodoEntity atualizarStatus(TodoEntity todo) {
+
+        String status = todo.getConcluido() == Boolean.TRUE ? "Concluido" : "Não concluido";
+
+        mailSender.enviar("Todo " + todo.getDescricao() + " foi atualizado para " + status);
         return repository.save(todo);
     }
 
